@@ -5,31 +5,39 @@ import bcrypt from 'bcryptjs';
 function generateCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
-  for(let i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
-
-  const { email, password, referenceCode } = req.body;
-
-  if (!email || !password) return res.status(400).json({ error: 'Email e senha são obrigatórios' });
-
-  // Verificar senha no backend (repetir validação frontend)
-  const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
-  if (!pwdRegex.test(password)) return res.status(400).json({ error: 'Senha inválida' });
+  console.log('API /api/onboard chamada com método:', req.method);
 
   try {
-    // Verifica se email já existe
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Método não permitido' });
+    }
+
+    const { email, password, referenceCode } = req.body;
+    console.log('Dados recebidos:', { email, password: password ? '****' : null, referenceCode });
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email e senha são obrigatórios' });
+    }
+
+    const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
+    if (!pwdRegex.test(password)) {
+      return res.status(400).json({ error: 'Senha inválida' });
+    }
+
+    // Verificar se email já existe
     const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
       return res.status(400).json({ error: 'E-mail já existe!' });
     }
 
-    // Se código referência informado, verificar se existe
+    // Verificar código de referência (opcional)
     if (referenceCode) {
       const referrer = await prisma.user.findUnique({ where: { reference: referenceCode } });
       if (!referrer) {
@@ -37,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Gerar código de referência único de 6 chars
+    // Gerar código de referência único
     let newReference = '';
     let tries = 0;
     do {
@@ -46,7 +54,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (!existingCode) break;
       tries++;
       if (tries > 10) throw new Error('Não foi possível gerar código único');
-    } while(true);
+    } while (true);
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -62,6 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     return res.status(201).json({ message: 'Usuário criado com sucesso' });
   } catch (error: any) {
+    console.error('Erro capturado na API /api/onboard:', error);
     return res.status(500).json({ error: 'Erro interno do servidor' });
   }
 }
