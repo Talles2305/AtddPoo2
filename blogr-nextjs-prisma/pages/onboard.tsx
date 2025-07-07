@@ -77,6 +77,12 @@ export default function Onboard() {
         <button type="submit" disabled={loading}>{loading ? 'Cadastrando...' : 'Cadastrar'}</button>
       </form>
       {message && <p style={{ color: 'red' }}>{message}</p>}
+
+      <style jsx>{`
+        
+      `}</style>
     </div>
+
+
   );
 }
