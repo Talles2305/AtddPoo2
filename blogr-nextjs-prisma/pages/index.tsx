@@ -1,61 +1,84 @@
-import React from "react"
-import { GetStaticProps } from "next"
-import Layout from "../components/Layout"
-import Post, { PostProps } from "../components/Post"
-import prisma from '../lib/prisma';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
-export const getStaticProps: GetStaticProps = async () => {
-  const feed = [
-    {
-      id: "1",
-      title: "Prisma is the perfect ORM for Next.js",
-      content: "[Prisma](https://github.com/prisma/prisma) and Next.js go _great_ together!",
-      published: false,
-      author: {
-        name: "Nikolas Burk",
-        email: "burk@prisma.io",
-      },
-    },
-  ]
-  return { 
-    props: { feed }, 
-    revalidate: 10 
+export default function Onboard() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [referenceCode, setReferenceCode] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
+
+  function isValidPassword(pwd: string) {
+    return /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(pwd);
   }
-}
 
-type Props = {
-  feed: PostProps[]
-}
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
 
-const Blog: React.FC<Props> = (props) => {
+    if (!isValidPassword(password)) {
+      setMessage('Senha deve ter no mínimo 6 caracteres, com pelo menos 1 letra e 1 número.');
+      return;
+    }
+
+    setLoading(true);
+
+    const res = await fetch('/api/onboard', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, referenceCode }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      // Redirecionar para login após sucesso
+      router.push('/login');
+    } else {
+      setMessage(data.error || 'Erro no cadastro');
+    }
+
+    setLoading(false);
+  };
+
   return (
-    <Layout>
-      <div className="page">
-        <h1>Public Feed</h1>
-        <main>
-          {props.feed.map((post) => (
-            <div key={post.id} className="post">
-              <Post post={post} />
-            </div>
-          ))}
-        </main>
-      </div>
-      <style jsx>{`
-        .post {
-          background: white;
-          transition: box-shadow 0.1s ease-in;
-        }
+    <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
+      <h1>Cadastro (Onboard)</h1>
+      <form onSubmit={handleSubmit}>
+        <label>Email:</label><br />
+        <input
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+          disabled={loading}
+        /><br /><br />
 
-        .post:hover {
-          box-shadow: 1px 1px 3px #aaa;
-        }
+        <label>Senha:</label><br />
+        <input
+          type="password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+          disabled={loading}
+        /><br /><br />
 
-        .post + .post {
-          margin-top: 2rem;
-        }
-      `}</style>
-    </Layout>
-  )
+        <label>Código de referência (opcional, 6 caracteres):</label><br />
+        <input
+          type="text"
+          maxLength={6}
+          value={referenceCode}
+          onChange={e => setReferenceCode(e.target.value.toUpperCase())}
+          disabled={loading}
+          placeholder="Exemplo: ABC123"
+        /><br /><br />
+
+        <button type="submit" disabled={loading}>{loading ? 'Cadastrando...' : 'Cadastrar'}</button>
+      </form>
+      {message && <p style={{ color: 'red' }}>{message}</p>}
+    </div>
+
+
+  );
 }
-
-export default Blog
