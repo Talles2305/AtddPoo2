@@ -37,7 +37,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'E-mail já existe!' });
     }
 
-    // Verificar código de referência (opcional)
+    // Verificar código de referência
     if (referenceCode) {
       const referrer = await prisma.user.findUnique({ where: { reference: referenceCode } });
       if (!referrer) {

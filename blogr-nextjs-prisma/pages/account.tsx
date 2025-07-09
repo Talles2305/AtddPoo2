@@ -30,11 +30,50 @@ export default function Account() {
   }
 
   return (
-    <div style={{ maxWidth: 400, margin: 'auto', padding: 20 }}>
-      <h1>Minha Conta</h1>
-      <p><strong>Número de referências:</strong> {referencesCount}</p>
-      <p><strong>Bônus recebido:</strong> R$ {bonus.toFixed(2)}</p>
-      <button onClick={logout}>Sair</button>
-    </div>
+    <><>
+      <div id ="main">
+        <h1>Minha Conta</h1>
+        <p><strong>Número de referências:</strong> {referencesCount}</p>
+        <p><strong>Bônus recebido:</strong> R$ {bonus.toFixed(2)}</p>
+        <button onClick={logout}>Sair</button>
+      </div>
+    </><style jsx global>{`
+        body {
+          background-color: rgb(240, 240, 220);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          font-family: 'Segoe UI', sans-serif;
+        }
+
+        #main {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          border: 10px;
+          border-radius: 10px;
+          border-color: black;
+          background-color: rgb(158, 158, 161);
+          font-weight: bold;
+          padding: 20px;
+        }
+        button {
+          width: 100%;
+          padding: 10px;
+          background-color: #0077cc;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+        }
+
+        button:hover {
+          background-color: #005fa3;
+        }
+
+      `}</style></>
   );
 }
