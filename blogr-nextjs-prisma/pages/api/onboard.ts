@@ -31,13 +31,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: 'Senha inválida' });
     }
 
-    // Verificar se email já existe
+    // Verifica se o email já existe
     const userExists = await prisma.user.findUnique({ where: { email } });
     if (userExists) {
       return res.status(400).json({ error: 'E-mail já existe!' });
     }
 
-    // Verificar código de referência
+    // Verifica o código de referência
     if (referenceCode) {
       const referrer = await prisma.user.findUnique({ where: { reference: referenceCode } });
       if (!referrer) {
@@ -45,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     }
 
-    // Gerar código de referência único
+    // Gera código de referência único
     let newReference = '';
     let tries = 0;
     do {
