@@ -1,22 +1,36 @@
+/*
+  Página de cadastro. Permite que novos usuários se cadastrem. 
+
+  @Author TallesCardoso, RafaelRocha, ViniciusAmaral
+*/
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
+//componente funcional (função da interface com o usuário) no caso representa a tela de cadastro
 export default function Onboard() {
+  //estados que guardam os valores do formulário
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [referenceCode, setReferenceCode] = useState('');
+  //estado que indica se uma requisição está em andamento
   const [loading, setLoading] = useState(false);
+  //para armazenar mensagens de erro ou sucesso
   const [message, setMessage] = useState<string | null>(null);
+  //instancia o router para navegar entre as págs
   const router = useRouter();
 
+  //função para validar a senha
   function isValidPassword(pwd: string) {
     return /^(?=.*[A-Za-z])(?=.*\d).{6,}$/.test(pwd);
   }
 
+  //função que lida com o envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
 	  e.preventDefault();
     setMessage(null);
 
+    //verificar se senha é válida
     if (!isValidPassword(password)) {
       setMessage('Senha deve ter no mínimo 6 caracteres, com pelo menos 1 letra e 1 número.');
       return;
@@ -24,6 +38,7 @@ export default function Onboard() {
 
     setLoading(true);
 
+    //faz uma requisição POST para o onboard enviando os dados do formulário como um JSON
     const res = await fetch('/api/onboard', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -32,8 +47,8 @@ export default function Onboard() {
 
     const data = await res.json();
 
+    //se o cadastro der certo redireciona para o login
     if (res.ok) {
-      // Redirecionar para login após sucesso
       router.push('/login');
     } else {
       setMessage(data.error || 'Erro no cadastro');
@@ -45,7 +60,7 @@ export default function Onboard() {
  return (
     <>  
       <div id="main">
-        <h1>Cadastro (Onboard)</h1>
+        <h1>Cadastro</h1>
         <form onSubmit={handleSubmit}>
           <label>Email:</label><br />
           <input

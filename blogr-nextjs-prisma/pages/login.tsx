@@ -1,6 +1,13 @@
+/*
+  Página de login. permite que os usuários que ja possuem cadastro entrem nas suas contas.
+
+  @Author TallesCardoso, RafaelRocha, ViniciusAmaral
+*/
+
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 
+//componente funcional que representa a tela de login
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -8,21 +15,24 @@ export default function Login() {
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
 
+  //função que lida com o envio do formulário
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setLoading(true);
 
+    //faz uma requisição POST para o onboard enviando os dados do formulário como um JSON
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
+    //coverte a resposta recebida do onboard em um objeto JS
     const data = await res.json();
 
     if (res.ok) {
-      // Salva dados no localStorage ou Context API - para exemplo simples, localStorage
+      // Salva dados no localStorage para usar depois
       localStorage.setItem('userId', data.userId);
       localStorage.setItem('reference', data.reference);
       localStorage.setItem('bonus', data.bonus.toString());

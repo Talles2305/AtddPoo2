@@ -1,7 +1,14 @@
+/*
+  Parte de criação de conta de usuário. Cria um novo usuário com email e senha.
+
+  @Author TallesCardoso, RafaelRocha, ViniciusAmaral
+*/
+
 import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../lib/prisma';
 import bcrypt from 'bcryptjs';
 
+//função para gerar código de referência aleatório
 function generateCode(length = 6) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let code = '';
@@ -11,21 +18,26 @@ function generateCode(length = 6) {
   return code;
 }
 
+//rota da api onboard
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   console.log('API /api/onboard chamada com método:', req.method);
 
+  //try para aceitar apenas requisições POST
   try {
     if (req.method !== 'POST') {
       return res.status(405).json({ error: 'Método não permitido' });
     }
 
+    //pega os dados do corpo da requisição
     const { email, password, referenceCode } = req.body;
     console.log('Dados recebidos:', { email, password: password ? '****' : null, referenceCode });
 
+    //valida se os campos obrigatórios foram enviados
     if (!email || !password) {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
     }
 
+    //valida a senha
     const pwdRegex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
     if (!pwdRegex.test(password)) {
       return res.status(400).json({ error: 'Senha inválida' });
@@ -56,8 +68,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       if (tries > 10) throw new Error('Não foi possível gerar código único');
     } while (true);
 
+    //criptografa a senha no bd
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    //cria um novo usuário no bd
     const user = await prisma.user.create({
       data: {
         email,
